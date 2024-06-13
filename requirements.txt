@@ -1,0 +1,5 @@
+pillow == pip install pillow 
+flask  == pip insstall flask
+pygame == pip install pygame
+python == pip install python
+python == python3 -m pip install python
