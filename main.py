@@ -1,13 +1,15 @@
-import random  # For generating random numbers
-import sys  # We will use sys.exit to exit the program
+from flask import Flask, render_template
+import random
+import sys
 import pygame
-from pygame.locals import *  # Basic pygame imports
+from pygame.locals import *
+
+app = Flask(__name__)
 
 # Global Variables for the game
 FPS = 32
 SCREENWIDTH = 289
 SCREENHEIGHT = 511
-SCREEN = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
 GROUNDY = SCREENHEIGHT * 0.8
 GAME_SPRITES = {}
 GAME_SOUNDS = {}
@@ -15,6 +17,55 @@ PLAYER = 'gallery/sprites/bird.png'
 BACKGROUND = 'gallery/sprites/background.png'
 PIPE = 'gallery/sprites/pipe.png'
 
+def init_pygame():
+    pygame.init()
+    global SCREEN, FPSCLOCK
+    SCREEN = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
+    FPSCLOCK = pygame.time.Clock()
+    pygame.display.set_caption('Flappy Bird by Codehub')
+
+    # Load all game sprites
+    GAME_SPRITES['numbers'] = (
+        pygame.image.load('gallery/sprites/0.png').convert_alpha(),
+        pygame.image.load('gallery/sprites/1.png').convert_alpha(),
+        pygame.image.load('gallery/sprites/2.png').convert_alpha(),
+        pygame.image.load('gallery/sprites/3.png').convert_alpha(),
+        pygame.image.load('gallery/sprites/4.png').convert_alpha(),
+        pygame.image.load('gallery/sprites/5.png').convert_alpha(),
+        pygame.image.load('gallery/sprites/6.png').convert_alpha(),
+        pygame.image.load('gallery/sprites/7.png').convert_alpha(),
+        pygame.image.load('gallery/sprites/8.png').convert_alpha(),
+        pygame.image.load('gallery/sprites/9.png').convert_alpha(),
+    )
+
+    GAME_SPRITES['message'] = pygame.image.load('gallery/sprites/message.png').convert_alpha()
+    GAME_SPRITES['base'] = pygame.image.load('gallery/sprites/base.png').convert_alpha()
+    GAME_SPRITES['pipe'] = (
+        pygame.transform.rotate(pygame.image.load(PIPE).convert_alpha(), 180),
+        pygame.image.load(PIPE).convert_alpha()
+    )
+
+    # Game sounds
+    GAME_SOUNDS['die'] = pygame.mixer.Sound('gallery/audio/die.wav')
+    GAME_SOUNDS['hit'] = pygame.mixer.Sound('gallery/audio/hit.wav')
+    GAME_SOUNDS['point'] = pygame.mixer.Sound('gallery/audio/point.wav')
+    GAME_SOUNDS['swoosh'] = pygame.mixer.Sound('gallery/audio/swoosh.wav')
+    GAME_SOUNDS['wing'] = pygame.mixer.Sound('gallery/audio/wing.wav')
+
+    GAME_SPRITES['background'] = pygame.image.load(BACKGROUND).convert()
+    GAME_SPRITES['player'] = pygame.image.load(PLAYER).convert_alpha()
+
+@app.route('/')
+def welcome():
+    init_pygame()
+    welcomeScreen()
+    return "Welcome Screen"
+
+@app.route('/play')
+def play():
+    init_pygame()
+    mainGame()
+    return "Game Over"
 
 def welcomeScreen():
     """
@@ -43,7 +94,6 @@ def welcomeScreen():
                 SCREEN.blit(GAME_SPRITES['base'], (basex, GROUNDY))
                 pygame.display.update()
                 FPSCLOCK.tick(FPS)
-
 
 def mainGame():
     score = 0
@@ -146,7 +196,6 @@ def mainGame():
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
-
 def isCollide(playerx, playery, upperPipes, lowerPipes):
     if playery > GROUNDY - 25 or playery < 0:
         GAME_SOUNDS['hit'].play()
@@ -165,7 +214,6 @@ def isCollide(playerx, playery, upperPipes, lowerPipes):
 
     return False
 
-
 def getRandomPipe():
     """
     Generate positions of two pipes(one bottom straight and one top rotated) for blitting on the screen
@@ -181,45 +229,5 @@ def getRandomPipe():
     ]
     return pipe
 
-
 if __name__ == "__main__":
-    # This will be the main point from where our game will start
-    pygame.init()  # Initialize all pygame's modules
-    FPSCLOCK = pygame.time.Clock()
-    pygame.display.set_caption('Flappy Bird by Codehub')
-
-    # Load all game sprites
-    GAME_SPRITES['numbers'] = (
-        pygame.image.load('gallery/sprites/0.png').convert_alpha(),
-        pygame.image.load('gallery/sprites/1.png').convert_alpha(),
-        pygame.image.load('gallery/sprites/2.png').convert_alpha(),
-        pygame.image.load('gallery/sprites/3.png').convert_alpha(),
-        pygame.image.load('gallery/sprites/4.png').convert_alpha(),
-        pygame.image.load('gallery/sprites/5.png').convert_alpha(),
-        pygame.image.load('gallery/sprites/6.png').convert_alpha(),
-        pygame.image.load('gallery/sprites/7.png').convert_alpha(),
-        pygame.image.load('gallery/sprites/8.png').convert_alpha(),
-        pygame.image.load('gallery/sprites/9.png').convert_alpha(),
-    )
-
-    GAME_SPRITES['message'] = pygame.image.load('gallery/sprites/message.png').convert_alpha()
-    GAME_SPRITES['base'] = pygame.image.load('gallery/sprites/base.png').convert_alpha()
-    GAME_SPRITES['pipe'] = (
-        pygame.transform.rotate(pygame.image.load(PIPE).convert_alpha(), 180),
-        pygame.image.load(PIPE).convert_alpha()
-    )
-
-    # Game sounds
-    GAME_SOUNDS['die'] = pygame.mixer.Sound('gallery/audio/die.wav')
-    GAME_SOUNDS['hit'] = pygame.mixer.Sound('gallery/audio/hit.wav')
-    GAME_SOUNDS['point'] = pygame.mixer.Sound('gallery/audio/point.wav')
-    GAME_SOUNDS['swoosh'] = pygame.mixer.Sound('gallery/audio/swoosh.wav')
-    GAME_SOUNDS['wing'] = pygame.mixer.Sound('gallery/audio/wing.wav')
-
-    GAME_SPRITES['background'] = pygame.image.load(BACKGROUND).convert()
-    GAME_SPRITES['player'] = pygame.image.load(PLAYER).convert_alpha()
-
-    while True:
-        welcomeScreen()  # Shows welcome screen to the user until he presses a button
-        mainGame()  # This is the main game function
- 
+    app.run(debug=True)
